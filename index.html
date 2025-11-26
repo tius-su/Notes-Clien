@@ -509,274 +509,6 @@
                     
                     loader.style.display = 'none';
                     alert('Download berhasil!');
-                }).c        }
-
-        input:focus,
-        textarea:focus {
-            border-color: var(--secondary-color);
-            outline: none;
-            box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.2);
-        }
-
-        textarea {
-            resize: vertical;
-            height: 200px;
-        }
-
-        .btn-group {
-            margin-top: 25px;
-            display: flex;
-            gap: 10px;
-            /* Di mobile, tombol juga akan full width */
-            flex-direction: row; 
-        }
-
-        button {
-            padding: 12px 20px;
-            border: none;
-            border-radius: 8px;
-            color: white;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background-color 0.3s, transform 0.1s;
-            flex-grow: 1;
-        }
-
-        button:active {
-            transform: scale(0.98);
-        }
-
-        #previewButton { background-color: var(--secondary-color); }
-        #previewButton:hover { background-color: #1a7ae2; }
-        #downloadButton { background-color: #FF9800; } 
-        #downloadButton:hover { background-color: #e68900; }
-        #whatsappButton { background-color: var(--primary-color); }
-        #whatsappButton:hover { background-color: #43a047; }
-
-
-        /* --- Area Output/Preview --- */
-        #outputContainer {
-            min-height: 300px;
-            padding: 20px;
-            border: 1px dashed #ccc;
-            border-radius: 8px;
-            background-color: #fafafa;
-            margin-top: 20px;
-            transition: all 0.5s;
-        }
-
-        .output-content h3 {
-            color: var(--secondary-color);
-            margin-top: 0;
-        }
-
-        .output-content p {
-            margin: 5px 0;
-            line-height: 1.5;
-        }
-
-        .output-content strong {
-            font-weight: 700;
-        }
-        
-        .output-content .note-body {
-            margin-top: 15px;
-            padding: 10px;
-            border-left: 4px solid var(--primary-color);
-            background-color: #e8f5e9;
-            white-space: pre-wrap;
-        }
-        
-        /* Gaya Khusus untuk Elemen yang akan di-Capture oleh html2canvas */
-        #captureArea {
-            padding: 20px;
-            background-color: #ffffff;
-            border-radius: 8px;
-        }
-        
-        #loader {
-            display: none;
-            text-align: center;
-            margin-top: 20px;
-            color: var(--secondary-color);
-        }
-
-        /* ==================================== */
-        /* MEDIA QUERY UNTUK MOBILE VIEW        */
-        /* ==================================== */
-        @media (max-width: 768px) {
-            
-            body {
-                padding: 15px; /* Kurangi padding body */
-            }
-            
-            /* Ubah Flex Direction dari row ke column */
-            .container {
-                flex-direction: column; 
-                gap: 0; /* Hapus gap antar kolom */
-            }
-            
-            /* Pastikan elemen card mengambil lebar penuh */
-            .input-card, .output-card {
-                flex: none; /* Batalkan flex: 1 */
-                width: 100%;
-                padding: 20px; /* Kurangi padding card */
-            }
-            
-            /* Jika tombol terlalu banyak di mobile, buat mereka menumpuk */
-            .btn-group {
-                flex-direction: column;
-            }
-            
-            button {
-                margin-bottom: 10px; /* Tambahkan jarak antar tombol */
-            }
-        }
-    </style>
-</head>
-<body>
-
-    <div class="container">
-        
-        <div class="input-card">
-            <h2>Masukan Catatan Anda 📝</h2>
-            
-            <div class="form-group">
-                <label for="tanggal">Tanggal:</label>
-                <input type="date" id="tanggal" value="" required>
-            </div>
-
-            <div class="form-group">
-                <label for="nama">Nama:</label>
-                <input type="text" id="nama" placeholder="Masukkan nama Anda" required>
-            </div>
-
-            <div class="form-group">
-                <label for="judul">Judul:</label>
-                <input type="text" id="judul" placeholder="Masukkan judul catatan" required>
-            </div>
-
-            <div class="form-group">
-                <label for="catatan">Isi Catatan (Max. 500 Karakter):</label>
-                <textarea id="catatan" maxlength="500" placeholder="Tuliskan isi catatan Anda di sini..." required></textarea>
-            </div>
-
-            <div class="btn-group">
-                <button id="previewButton">Lihat Preview</button>
-            </div>
-            
-        </div>
-        
-        <div class="output-card">
-            <h2>Preview & Aksi 🚀</h2>
-            
-            <div id="outputContainer">
-                <div id="captureArea">
-                    <p style="text-align: center; color: #999;">Isi formulir dan klik "Lihat Preview" untuk melihat hasilnya di sini.</p>
-                </div>
-            </div>
-            
-            <div id="loader">Memproses gambar... Tunggu sebentar.</div>
-            
-            <div class="btn-group" style="margin-top: 30px;">
-                <button id="whatsappButton" disabled>Share WA 🟢</button>
-                <button id="downloadButton" disabled>Download JPG 🖼️</button>
-            </div>
-        </div>
-        
-    </div>
-
-    <script>
-        // JavaScript (Tidak ada perubahan, fungsionalitas tetap sama)
-        document.addEventListener('DOMContentLoaded', () => {
-            const tanggalInput = document.getElementById('tanggal');
-            const namaInput = document.getElementById('nama');
-            const judulInput = document.getElementById('judul');
-            const catatanInput = document.getElementById('catatan');
-            const previewButton = document.getElementById('previewButton');
-            const whatsappButton = document.getElementById('whatsappButton');
-            const downloadButton = document.getElementById('downloadButton');
-            const captureArea = document.getElementById('captureArea');
-            const loader = document.getElementById('loader');
-
-            tanggalInput.valueAsDate = new Date();
-
-            function updatePreview() {
-                const tanggal = tanggalInput.value;
-                const nama = namaInput.value.trim();
-                const judul = judulInput.value.trim();
-                const catatan = catatanInput.value.trim();
-                
-                const formattedDate = tanggal ? new Date(tanggal).toLocaleDateString('id-ID', {
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric'
-                }) : 'Tanggal Tidak Diisi';
-                
-                let outputHTML = '';
-                
-                if (nama && judul && catatan) {
-                    outputHTML = `
-                        <div class="output-content">
-                            <h3>${judul}</h3>
-                            <p><strong>Nama:</strong> ${nama}</p>
-                            <p><strong>Tanggal:</strong> ${formattedDate}</p>
-                            <div class="note-body">${catatan}</div>
-                        </div>
-                    `;
-                    
-                    whatsappButton.disabled = false;
-                    downloadButton.disabled = false;
-                } else {
-                    outputHTML = '<p style="text-align: center; color: #999;">Lengkapi semua input untuk melihat preview.</p>';
-                    whatsappButton.disabled = true;
-                    downloadButton.disabled = true;
-                }
-
-                captureArea.innerHTML = outputHTML;
-            }
-
-            function shareToWhatsApp() {
-                const judul = judulInput.value.trim();
-                const nama = namaInput.value.trim();
-                const catatan = catatanInput.value.trim();
-                
-                if (!judul || !nama || !catatan) {
-                     alert('Mohon lengkapi semua input sebelum berbagi.');
-                     return;
-                }
-                
-                const text = `*Catatan Baru*\n\n` +
-                             `*Judul:* ${judul}\n` +
-                             `*Dari:* ${nama}\n\n` +
-                             `*Isi:*\n${catatan}`;
-                             
-                const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(text)}`;
-                
-                window.open(whatsappUrl, '_blank');
-            }
-
-            function downloadAsJPG() {
-                loader.style.display = 'block'; 
-                
-                html2canvas(captureArea, {
-                    scale: 2, 
-                    logging: false, 
-                    useCORS: true 
-                }).then(canvas => {
-                    const image = canvas.toDataURL('image/jpeg', 0.9);
-                    
-                    const link = document.createElement('a');
-                    link.download = `Catatan_${judulInput.value.trim() || 'tanpa_judul'}.jpg`;
-                    link.href = image;
-                    
-                    document.body.appendChild(link);
-                    link.click();
-                    document.body.removeChild(link);
-                    
-                    loader.style.display = 'none';
-                    alert('Download berhasil!');
                 }).catch(error => {
                     console.error('Gagal membuat gambar:', error);
                     loader.style.display = 'none';
@@ -784,16 +516,35 @@
                 });
             }
 
-            // --- Event Listeners ---
+            // --- 6. PASANG EVENT LISTENERS ---
+            toggleSidebarBtn.addEventListener('click', toggleSidebar);
+            sidebarOverlay.addEventListener('click', toggleSidebar);
+
+            saveButton.addEventListener('click', handleSave);
+            newButton.addEventListener('click', handleNewNote);
+            deleteButton.addEventListener('click', handleDelete);
             previewButton.addEventListener('click', updatePreview);
             whatsappButton.addEventListener('click', shareToWhatsApp);
             downloadButton.addEventListener('click', downloadAsJPG);
             
+            // Auto-preview saat input berubah
             [tanggalInput, namaInput, judulInput, catatanInput].forEach(input => {
                 input.addEventListener('input', updatePreview);
             });
             
-            updatePreview();
+            // --- 7. INISIALISASI ---
+            loadNotes();
+            renderNotesList();
+            handleNewNote();
+            
+            // Aturan awal untuk sidebar desktop (Sembunyikan default, tampilkan tombol toggle)
+            if (window.innerWidth > 900) {
+                 sidebarList.classList.add('hidden');
+                 container.classList.add('sidebar-hidden');
+                 toggleSidebarBtn.textContent = 'Daftar Catatan ☰';
+                 toggleSidebarBtn.style.display = 'block'; 
+                 toggleSidebarBtn.style.position = 'static'; 
+            }
         });
     </script>
 </body>
