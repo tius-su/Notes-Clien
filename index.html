@@ -3,16 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Aplikasi Catatan Modern</title>
+    <title>Aplikasi Catatan Modern - Final Revision</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
-        /* CSS */
+        /* CSS Umum */
         :root {
             --primary-color: #4CAF50;
             --secondary-color: #2196F3;
             --background-color: #f4f7f6;
             --card-background: #ffffff;
             --text-color: #333;
+            --sidebar-width: 280px;
         }
 
         body {
@@ -27,58 +28,488 @@
             min-height: 100vh;
         }
 
-        /* Container untuk tampilan desktop (default) */
+        /* Container Utama */
         .container {
             display: flex;
-            gap: 30px;
-            max-width: 1200px;
+            gap: 20px;
+            max-width: 1400px;
             width: 100%;
+            position: relative;
+        }
+        
+        /* --- Tombol Toggle (Desktop & Mobile) --- */
+        #toggleSidebarBtn {
+            display: none; 
+            z-index: 1010; 
+            padding: 10px 15px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            transition: transform 0.2s;
         }
 
-        /* --- Formulir & Output Card Style --- */
-        .input-card, .output-card {
-            flex: 1;
+        /* --- Sidebar Daftar Catatan --- */
+        .list-card {
+            flex: 0 0 var(--sidebar-width);
             background: var(--card-background);
-            padding: 30px;
+            padding: 20px;
             border-radius: 12px;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-            transition: transform 0.3s ease;
-            margin-bottom: 20px; /* Tambahkan margin bawah agar tidak mepet di mobile */
+            overflow-y: auto;
+            max-height: 90vh;
+            transition: margin-left 0.3s ease; 
+        }
+        
+        /* Hidden Class untuk Sidebar (Desktop) */
+        .list-card.hidden {
+            margin-left: calc(-1 * var(--sidebar-width) - 20px); 
         }
 
-        .input-card:hover {
-            transform: translateY(-5px);
+        /* Konten Utama */
+        .main-content-area {
+            flex: 1; 
+            display: flex;
+            gap: 20px;
+            transition: width 0.3s ease, margin-left 0.3s ease;
+        }
+        
+        /* Jika sidebar tersembunyi, konten utama akan memanjang ke kiri */
+        .container.sidebar-hidden .main-content-area {
+             width: 100%;
+             margin-left: 0;
         }
 
-        h2 {
-            color: var(--primary-color);
-            margin-top: 0;
-            border-bottom: 2px solid #eee;
-            padding-bottom: 10px;
-            margin-bottom: 20px;
+        /* List Styling */
+        #notesList { list-style: none; padding: 0; }
+        #notesList li {
+            padding: 10px 15px; border-bottom: 1px solid #eee; cursor: pointer;
+            transition: background-color 0.2s; border-radius: 6px; margin-bottom: 5px; font-size: 0.9em;
         }
+        #notesList li:hover { background-color: #f0f8ff; }
+        #notesList li.active { background-color: var(--secondary-color); color: white; font-weight: 600; }
 
-        .form-group {
-            margin-bottom: 15px;
+        /* Input & Output Cards */
+        .input-card, .output-card {
+            flex: 1; background: var(--card-background); padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
         }
+        
+        h2 { color: var(--primary-color); margin-top: 0; border-bottom: 2px solid #eee; padding-bottom: 10px; margin-bottom: 20px; }
+        input[type="date"], input[type="text"], textarea { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 16px; }
+        textarea { height: 200px; resize: vertical; }
 
-        label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: 600;
-        }
+        .btn-group { margin-top: 25px; display: flex; gap: 10px; flex-wrap: wrap; }
+        .btn-group button { padding: 12px; border: none; border-radius: 8px; color: white; font-weight: 600; cursor: pointer; transition: background-color 0.3s; }
 
-        input[type="date"],
-        input[type="text"],
-        textarea {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            box-sizing: border-box;
-            font-size: 16px;
-            transition: border-color 0.3s;
+        /* Button Colors */
+        #saveButton { background-color: #E91E63; flex: 2 1 100%; } 
+        #newButton { background-color: #9C27B0; flex: 1 1 45%; }
+        #deleteButton { background-color: #F44336; flex: 1 1 45%; }
+        #previewButton { background-color: #2196F3; flex: 1 1 100%; }
+        #whatsappButton { background-color: var(--primary-color); }
+        #downloadButton { background-color: #FF9800; } 
+        
+        #captureArea { padding: 20px; background-color: #ffffff; border-radius: 8px; font-size: 1em; }
+
+
+        /* ==================================== */
+        /* MEDIA QUERY UNTUK MOBILE VIEW        */
+        /* ==================================== */
+        @media (max-width: 900px) {
+            
+            body { padding: 0; } 
+
+            .container {
+                flex-direction: column; 
+                gap: 0;
+                padding-top: 55px;
+            }
+            
+            #toggleSidebarBtn {
+                display: block; 
+                position: fixed;
+                top: 15px;
+                left: 15px;
+            }
+
+            /* Ubah sidebar menjadi posisi fixed, menutupi layar sebagian */
+            .list-card {
+                position: fixed;
+                top: 0;
+                left: 0;
+                height: 100%;
+                max-height: 100vh;
+                width: 80%; 
+                z-index: 1000;
+                border-radius: 0;
+                box-shadow: 5px 0 15px rgba(0, 0, 0, 0.3);
+                
+                transform: translateX(-100%); 
+                transition: transform 0.3s ease-in-out;
+            }
+            
+            .list-card.show {
+                transform: translateX(0);
+            }
+            
+            /* Sembunyikan overlay gelap saat sidebar tertutup */
+            #sidebarOverlay {
+                display: none;
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.5);
+                z-index: 999;
+            }
+            
+            #sidebarOverlay.show {
+                display: block;
+            }
+
+            .main-content-area {
+                flex-direction: column; 
+                gap: 0;
+                padding: 15px;
+            }
+            
+            .input-card, .output-card {
+                flex: none;
+                width: 100%;
+                padding: 20px; 
+                margin-bottom: 20px;
+            }
+
+            .btn-group button {
+                flex: 1 1 100%; 
+                margin-bottom: 5px;
+            }
         }
+    </style>
+</head>
+<body>
+    
+    <div id="sidebarOverlay"></div>
+
+    <button id="toggleSidebarBtn">Daftar Catatan ☰</button>
+
+    <div class="container">
+        
+        <div class="list-card" id="sidebarList">
+            <h2>Daftar Catatan Tersimpan 📑</h2>
+            <ul id="notesList">
+                </ul>
+        </div>
+        
+        <div class="main-content-area">
+            
+            <div class="input-card">
+                <h2 id="formTitle">Buat Catatan Baru 📝</h2>
+                <input type="hidden" id="noteId"> 
+                
+                <div class="form-group">
+                    <label for="tanggal">Tanggal:</label>
+                    <input type="date" id="tanggal" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="nama">Nama:</label>
+                    <input type="text" id="nama" placeholder="Masukkan nama Anda" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="judul">Judul:</label>
+                    <input type="text" id="judul" placeholder="Masukkan judul catatan" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="catatan">Isi Catatan (Max. 500 Karakter):</label>
+                    <textarea id="catatan" maxlength="500" placeholder="Tuliskan isi catatan Anda di sini..." required></textarea>
+                </div>
+
+                <div class="btn-group">
+                    <button id="saveButton">Simpan / Perbarui</button>
+                    <button id="newButton">Catatan Baru</button>
+                    <button id="deleteButton" disabled>Hapus</button>
+                    <button id="previewButton">Lihat Preview</button>
+                </div>
+            </div>
+            
+            <div class="output-card">
+                <h2>Preview & Aksi 🚀</h2>
+                
+                <div id="outputContainer">
+                    <div id="captureArea">
+                        <p style="text-align: center; color: #999;">Isi formulir dan klik "Simpan" atau "Lihat Preview".</p>
+                    </div>
+                </div>
+                
+                <div id="loader">Memproses gambar... Tunggu sebentar.</div>
+                
+                <div class="btn-group" style="margin-top: 30px;">
+                    <button id="whatsappButton" disabled>Share WA 🟢</button>
+                    <button id="downloadButton" disabled>Download JPG 🖼️</button>
+                </div>
+            </div>
+        </div>
+        
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- 1. DEKLARASI VARIABEL UTAMA ---
+            const tanggalInput = document.getElementById('tanggal');
+            const namaInput = document.getElementById('nama');
+            const judulInput = document.getElementById('judul');
+            const catatanInput = document.getElementById('catatan');
+            const noteIdInput = document.getElementById('noteId');
+            const formTitle = document.getElementById('formTitle');
+            const notesList = document.getElementById('notesList');
+            const toggleSidebarBtn = document.getElementById('toggleSidebarBtn');
+            const sidebarList = document.getElementById('sidebarList');
+            const sidebarOverlay = document.getElementById('sidebarOverlay');
+            const container = document.querySelector('.container');
+
+            const previewButton = document.getElementById('previewButton');
+            const saveButton = document.getElementById('saveButton');
+            const newButton = document.getElementById('newButton');
+            const deleteButton = document.getElementById('deleteButton');
+            const whatsappButton = document.getElementById('whatsappButton');
+            const downloadButton = document.getElementById('downloadButton');
+            const captureArea = document.getElementById('captureArea');
+            const loader = document.getElementById('loader');
+
+            let currentNotes = []; 
+            const STORAGE_KEY = 'simpleNotesApp';
+
+            // --- 2. FUNGSI UTILITY & LOCAL STORAGE ---
+            
+            function loadNotes() {
+                try {
+                    const data = localStorage.getItem(STORAGE_KEY);
+                    currentNotes = data ? JSON.parse(data) : [];
+                } catch (e) {
+                    console.error("Gagal memuat catatan dari Local Storage:", e);
+                    currentNotes = [];
+                }
+            }
+
+            function saveNotes() {
+                try {
+                    localStorage.setItem(STORAGE_KEY, JSON.stringify(currentNotes));
+                } catch (e) {
+                    console.error("Gagal menyimpan catatan ke Local Storage:", e);
+                    alert("Peringatan: Gagal menyimpan data ke Local Storage.");
+                }
+            }
+
+            function formatDate(dateString) {
+                if (!dateString) return 'Tanggal Tidak Diisi';
+                const dateObj = new Date(dateString);
+                const localDate = new Date(dateObj.getTime() + dateObj.getTimezoneOffset() * 60000);
+                
+                return localDate.toLocaleDateString('id-ID', {
+                    year: 'numeric',
+                    month: 'short', 
+                    day: 'numeric'
+                });
+            }
+            
+            // --- 3. FUNGSI TOGGLE SIDEBAR ---
+            function toggleSidebar() {
+                const isMobile = window.innerWidth <= 900;
+                
+                if (isMobile) {
+                    sidebarList.classList.toggle('show');
+                    sidebarOverlay.classList.toggle('show');
+                } else {
+                    sidebarList.classList.toggle('hidden');
+                    container.classList.toggle('sidebar-hidden');
+                }
+            }
+
+            // --- 4. FUNGSI CRUD & UI ---
+            
+            function renderNotesList() {
+                 notesList.innerHTML = '';
+                 if (currentNotes.length === 0) {
+                     notesList.innerHTML = '<li style="color: #999;">Tidak ada catatan tersimpan.</li>';
+                     return;
+                 }
+                 
+                 currentNotes.sort((a, b) => new Date(b.tanggal) - new Date(a.tanggal));
+
+                 currentNotes.forEach(note => {
+                     const listItem = document.createElement('li');
+                     listItem.textContent = `${formatDate(note.tanggal)} - ${note.judul.substring(0, 20)}${note.judul.length > 20 ? '...' : ''}`;
+                     listItem.dataset.id = note.id;
+                     
+                     if (note.id === noteIdInput.value) {
+                          listItem.classList.add('active');
+                     }
+                     
+                     listItem.addEventListener('click', () => {
+                         loadNoteForEdit(note.id);
+                         if (window.innerWidth <= 900) {
+                              toggleSidebar(); 
+                         }
+                     });
+                     notesList.appendChild(listItem);
+                 });
+            }
+            
+            function loadNoteForEdit(id) {
+                const note = currentNotes.find(n => n.id === id);
+                if (!note) return;
+                
+                tanggalInput.value = note.tanggal; 
+                namaInput.value = note.nama;
+                judulInput.value = note.judul;
+                catatanInput.value = note.catatan;
+                noteIdInput.value = note.id;
+                
+                formTitle.textContent = `Edit Catatan: ${note.judul.substring(0, 20)}...`;
+                deleteButton.disabled = false;
+                
+                updatePreview();
+                renderNotesList();
+            }
+
+            function handleSave() {
+                const tanggal = tanggalInput.value;
+                const nama = namaInput.value.trim();
+                const judul = judulInput.value.trim();
+                const catatan = catatanInput.value.trim();
+                const id = noteIdInput.value;
+
+                if (!tanggal || !nama || !judul || !catatan) {
+                    alert('Semua kolom harus diisi!');
+                    return;
+                }
+                
+                if (id) {
+                    const index = currentNotes.findIndex(n => n.id === id);
+                    if (index !== -1) {
+                        currentNotes[index] = { id, tanggal, nama, judul, catatan };
+                        alert(`Catatan "${judul}" berhasil diperbarui!`);
+                    }
+                } else {
+                    const newId = Date.now().toString();
+                    const newNote = { id: newId, tanggal, nama, judul, catatan };
+                    currentNotes.push(newNote);
+                    noteIdInput.value = newId; 
+                    alert(`Catatan "${judul}" berhasil disimpan!`);
+                }
+
+                saveNotes();
+                renderNotesList();
+                updatePreview();
+            }
+            
+            function handleDelete() {
+                 const id = noteIdInput.value;
+                 const judul = judulInput.value;
+                 
+                 if (!id) return;
+                 
+                 if (confirm(`Anda yakin ingin menghapus catatan "${judul}"?`)) {
+                    currentNotes = currentNotes.filter(n => n.id !== id);
+                    saveNotes();
+                    handleNewNote(); 
+                    alert('Catatan berhasil dihapus.');
+                 }
+            }
+
+            function handleNewNote() {
+                tanggalInput.valueAsDate = new Date();
+                namaInput.value = '';
+                judulInput.value = '';
+                catatanInput.value = '';
+                noteIdInput.value = '';
+                formTitle.textContent = 'Buat Catatan Baru 📝';
+                deleteButton.disabled = true;
+                whatsappButton.disabled = true;
+                downloadButton.disabled = true;
+                captureArea.innerHTML = '<p style="text-align: center; color: #999;">Isi formulir dan klik "Simpan" atau "Lihat Preview".</p>';
+                renderNotesList();
+            }
+
+            // --- 5. FUNGSI PREVIEW & AKSI ---
+
+            function updatePreview() {
+                const tanggal = tanggalInput.value;
+                const nama = namaInput.value.trim();
+                const judul = judulInput.value.trim();
+                const catatan = catatanInput.value.trim();
+                
+                const formattedDate = formatDate(tanggal);
+                let outputHTML = '';
+                
+                if (nama && judul && catatan) {
+                    outputHTML = `
+                        <div class="output-content">
+                            <h3>${judul}</h3>
+                            <p><strong>Nama:</strong> ${nama}</p>
+                            <p><strong>Tanggal:</strong> ${formattedDate}</p>
+                            <div class="note-body">${catatan}</div>
+                        </div>
+                    `;
+                    
+                    whatsappButton.disabled = false;
+                    downloadButton.disabled = false;
+                } else {
+                    outputHTML = '<p style="text-align: center; color: #999;">Lengkapi semua input untuk melihat preview.</p>';
+                    whatsappButton.disabled = true;
+                    downloadButton.disabled = true;
+                }
+
+                captureArea.innerHTML = outputHTML;
+            }
+
+            function shareToWhatsApp() {
+                const judul = judulInput.value.trim();
+                const nama = namaInput.value.trim();
+                const catatan = catatanInput.value.trim();
+                
+                if (!judul || !nama || !catatan) {
+                     alert('Mohon lengkapi semua input sebelum berbagi.');
+                     return;
+                }
+                
+                const text = `*Catatan Baru*\n\n` +
+                             `*Judul:* ${judul}\n` +
+                             `*Dari:* ${nama}\n\n` +
+                             `*Isi:*\n${catatan}`;
+                             
+                const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(text)}`;
+                
+                window.open(whatsappUrl, '_blank');
+            }
+
+            function downloadAsJPG() {
+                loader.style.display = 'block'; 
+                
+                html2canvas(captureArea, {
+                    scale: 2, 
+                    logging: false, 
+                    useCORS: true 
+                }).then(canvas => {
+                    const image = canvas.toDataURL('image/jpeg', 0.9);
+                    
+                    const link = document.createElement('a');
+                    link.download = `Catatan_${judulInput.value.trim() || 'tanpa_judul'}.jpg`;
+                    link.href = image;
+                    
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    
+                    loader.style.display = 'none';
+                    alert('Download berhasil!');
+                }).c        }
 
         input:focus,
         textarea:focus {
